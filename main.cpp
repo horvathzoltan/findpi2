@@ -1,12 +1,9 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
-#include <QAbstractEventDispatcher>
 #include "logger.h"
 #include "signalhelper.h"
 #include "commandlineparserhelper.h"
-//#include "common/coreappworker/coreappworker.h"
 #include "work1.h"
-//#include "coreappworker2.h"
 
 auto main(int argc, char *argv[]) -> int
 {
@@ -38,12 +35,10 @@ auto main(int argc, char *argv[]) -> int
 
     Work1 w1;
 
-    Work1::Params w1Params(parser.value(OPTION_IP));
-    auto w1Result = w1.doWork(w1Params); // indítás direkt
+    QString ip = parser.value(OPTION_IP);
 
-    zInfo(QStringLiteral("wa iting..."));
-
-    zInfo(w1Result.ToString());
+    Work1::Params w1Params(ip);
+    auto w1Result = w1.doWork(w1Params); // indítás direkt   
 
     return (w1Result.state==Work1::Result::Ok)?0:-1;
 }

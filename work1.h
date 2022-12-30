@@ -1,6 +1,7 @@
 #ifndef WORK1_H
 #define WORK1_H
 
+#include <QHostAddress>
 #include <QString>
 #include <QThread>
 
@@ -8,8 +9,8 @@ class Work1
 {
 public:
     struct Params{
-        explicit Params(QString ipAddress) : ipAddress(std::move(ipAddress)) {}
-        QString ipAddress;
+        explicit Params(QString ipAddress);
+        QHostAddress ipAddress;
 
         bool IsValid();
     };

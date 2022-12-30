@@ -1,6 +1,27 @@
 #include "work1.h"
 #include "logger.h"
 #include "nameof.h"
+#include "ipscanner.h"
+
+Work1::Params::Params(QString _ipAddress){
+    ipAddress = QHostAddress(_ipAddress);
+    if(ipAddress.isNull())
+    {
+        auto addresses = IpScanner::GetLocalAddresses();
+        if(!addresses.isEmpty()) {
+            ipAddress = addresses.first();
+        }
+//        else{
+//            /*
+//            unsigned char ip3[4];
+//            ip[3]=10;
+//            ip[2]=10;
+//            ip[1]=10;
+//                    */
+//            //qint32* c = (int*)a;
+//        }
+    }
+}
 
 auto Work1::Params::IsValid() -> bool
 {
@@ -20,12 +41,20 @@ auto Work1::Result::ToString() -> QString
 
 auto Work1::doWork(Params params) -> Result
 {
-    zInfo(QStringLiteral("params: %1, %2, %3").arg(params.ipAddress));
+    zInfo(QStringLiteral("params: %1").arg(params.ipAddress.toString()));
 
-    for(int i=0;i<10;i++)
+    QMap<QString, QSet<int>> result =
+            IpScanner::Scan(params.ipAddress, 1, 254, {22, 1997, 8080});
+
+    for(auto&key:result.keys())
     {
-        QThread::msleep(500);
-            zInfo(QStringLiteral("Work1: ")+QString::number(i));
+        QSet<int> values = result[key];
+        QString str;//ports
+        for(auto&v:values){
+            if(!str.isEmpty()) str+=',';
+            str+=QString::number(v);
+        };
+        zInfo("ip:" + key + ":" +str);
     }
     return {Result::State::Ok, 55};
 }

@@ -1,4 +1,5 @@
 QT -= gui
+QT += network
 
 CONFIG += c++17 console
 CONFIG -= app_bundle
@@ -93,6 +94,7 @@ message( "hmmmm "$$HOME/$$COMMON_LIBS)
 SOURCES += \
         commandlineparserhelper.cpp \
         coreappworker.cpp \
+        ipscanner.cpp \
         logger.cpp \
         main.cpp \
         signalhelper.cpp \
@@ -101,6 +103,7 @@ SOURCES += \
 HEADERS += \
     commandlineparserhelper.h \
     coreappworker.h \
+    ipscanner.h \
     logger.h \
     nameof.h \
     signalhelper.h \
