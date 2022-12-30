@@ -26,44 +26,26 @@ auto main(int argc, char *argv[]) -> int
     parser.addHelpOption();
     parser.addVersionOption();  
 
-    const QString OPTION_IN = QStringLiteral("input");
-    const QString OPTION_OUT = QStringLiteral("output");
-    const QString OPTION_BACKUP = QStringLiteral("backup");
+    const QString OPTION_IP = QStringLiteral("ip");
+//    const QString OPTION_OUT = QStringLiteral("output");
+//    const QString OPTION_BACKUP = QStringLiteral("backup");
 
-    CommandLineParserHelper::addOption(&parser, OPTION_IN, QStringLiteral("gerber file as input"));
-    CommandLineParserHelper::addOption(&parser, OPTION_OUT, QStringLiteral("csv file as output"));
-    CommandLineParserHelper::addOptionBool(&parser, OPTION_BACKUP, QStringLiteral("set if backup is needed"));
+    CommandLineParserHelper::addOption(&parser, OPTION_IP, QStringLiteral("ipaddress"));
+//    CommandLineParserHelper::addOption(&parser, OPTION_OUT, QStringLiteral("csv file as output"));
+//    CommandLineParserHelper::addOptionBool(&parser, OPTION_BACKUP, QStringLiteral("set if backup is needed"));
 
     parser.process(app);
 
-    bool isEventLoopNeeded = false;
+    Work1 w1;
 
-    auto w1 =  new Work1(isEventLoopNeeded);
+    Work1::Params w1Params(parser.value(OPTION_IP));
+    auto w1Result = w1.doWork(w1Params); // indítás direkt
 
-    bool isok = w1->init({
-         parser.value(OPTION_IN),
-         parser.value(OPTION_OUT),
-         parser.isSet(OPTION_BACKUP)
-    });
-
-    if(!isok){
-        return 1;
-    }
-
-    //Work1::Result a;
-    auto a = w1->doWork(); // indítás direkt
-    //w1->start(); // indítás szálon
     zInfo(QStringLiteral("waiting..."));
 
-    int e = isEventLoopNeeded?QCoreApplication::exec():0;
+    zInfo(w1Result.ToString());
 
-    zInfo(a.ToString());
-
-    if(w1->result.state==Work1::Result::State::NotCalculated &&
-        !isEventLoopNeeded) zInfo(QStringLiteral("NoEventLoop"));
-
-    if(!e) zInfo(QStringLiteral("Everything went ok."));
-    return e;
+    return (w1Result.state==Work1::Result::Ok)?0:-1;
 }
 
 

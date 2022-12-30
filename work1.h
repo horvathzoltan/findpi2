@@ -4,20 +4,12 @@
 #include <QString>
 #include <QThread>
 
-class Work1 : public QThread
+class Work1
 {
-    Q_OBJECT
-
-    void run() override;
 public:
-    Work1(bool isEventLoopNeeded);
-
-    struct Params
-    {
-    public:
-        QString inFile;
-        QString outFile;
-        bool isBackup;
+    struct Params{
+        explicit Params(QString ipAddress) : ipAddress(std::move(ipAddress)) {}
+        QString ipAddress;
 
         bool IsValid();
     };
@@ -30,18 +22,7 @@ public:
         QString ToString();
     };
 
-    bool init(Params p);
-    Result doWork();
-    Result result;
-
-private:
-    bool _isInited = false;
-    bool _isEventLoopNeeded = false;
-    Params params;
-    Result doWork2();
-
-signals:
-    void finished();
+    Result doWork(Params params);
 };
 
 #endif // WORK1_H
