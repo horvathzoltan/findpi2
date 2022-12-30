@@ -41,7 +41,7 @@ auto main(int argc, char *argv[]) -> int
     Work1::Params w1Params(parser.value(OPTION_IP));
     auto w1Result = w1.doWork(w1Params); // indítás direkt
 
-    zInfo(QStringLiteral("waiting..."));
+    zInfo(QStringLiteral("wa iting..."));
 
     zInfo(w1Result.ToString());
 
