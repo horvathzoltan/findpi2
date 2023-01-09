@@ -11,15 +11,6 @@ Work1::Params::Params(QString _ipAddress){
         if(!addresses.isEmpty()) {
             ipAddress = addresses.first();
         }
-//        else{
-//            /*
-//            unsigned char ip3[4];
-//            ip[3]=10;
-//            ip[2]=10;
-//            ip[1]=10;
-//                    */
-//            //qint32* c = (int*)a;
-//        }
     }
 }
 
@@ -43,8 +34,9 @@ auto Work1::doWork(Params params) -> Result
 {
     zInfo(QStringLiteral("params: %1").arg(params.ipAddress.toString()));
 
+    IpScanner::setVerbose(false);
     QMap<QString, QSet<int>> result =
-            IpScanner::Scan(params.ipAddress, 1, 254, {22, 1997, 8080});
+            IpScanner::Scan(params.ipAddress, 1, 254, {22, 1997, 8080}, 30);
 
     for(auto&key:result.keys())
     {

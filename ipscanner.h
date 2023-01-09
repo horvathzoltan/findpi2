@@ -8,9 +8,14 @@
 
 class IpScanner
 {
-public:        
-    static QMap<QString, QSet<int>> Scan(QHostAddress ip, int i1, int i2, QSet<int> p);
+private:
+    static bool _verbose;
+
+    static void log(const QString& mag);
+public:                
+    static QMap<QString, QSet<int>> Scan(QHostAddress ip, int i1, int i2, QSet<int> p, int timeout);
     static QList<QHostAddress> GetLocalAddresses();
+    static void setVerbose(bool v);
 };
 
 #endif // IPSCANNER_H
