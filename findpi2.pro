@@ -97,6 +97,7 @@ SOURCES += \
         ipscanner.cpp \
         logger.cpp \
         main.cpp \
+        sendicmp.cpp \
         signalhelper.cpp \
         work1.cpp
 
@@ -106,6 +107,7 @@ HEADERS += \
     ipscanner.h \
     logger.h \
     nameof.h \
+    sendicmp.h \
     signalhelper.h \
     work1.h
 
@@ -119,3 +121,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 #\
 #    signalhelper.h
+
+DISTFILES += \
+    todo.txt
