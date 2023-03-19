@@ -2,7 +2,6 @@
 #include "logger.h"
 #include "nameof.h"
 #include "ipscanner.h"
-#include "sendicmp.h"
 #include <QDebug>
 
 Work1::Params::Params(QString _ipAddress){
@@ -36,28 +35,21 @@ auto Work1::doWork(Params params) -> Result
 {
     zInfo(QStringLiteral("params: %1").arg(params.ipAddress.toString()));
 
-    Ping ping;
-    bool ok = ping.ping("index.hu");//10.10.10.1
+    IpScanner::setVerbose(false);
+    QMap<QString, QSet<int>> result =
+            IpScanner::Scan(params.ipAddress, 1, 254, {22, 1997, 8080}, 100, 1, 100);
 
-    if(ok){
-        qDebug()<<"ping ok";
-    } else{
-        qDebug()<<"ping err";
+    QList<QString> keys = result.keys();
+    for (auto&key : keys)
+    {
+        QSet<int> values = result[key];
+        QString str;//ports
+        for(auto&v:values){
+            if(!str.isEmpty()) str+=',';
+            str+=QString::number(v);
+        };
+        zInfo("ip:" + key + ":" +str);
     }
-//    IpScanner::setVerbose(false);
-//    QMap<QString, QSet<int>> result =
-//            IpScanner::Scan(params.ipAddress, 1, 254, {22, 1997, 8080}, 30);
-
-//    for(auto&key:result.keys())
-//    {
-//        QSet<int> values = result[key];
-//        QString str;//ports
-//        for(auto&v:values){
-//            if(!str.isEmpty()) str+=',';
-//            str+=QString::number(v);
-//        };
-//        zInfo("ip:" + key + ":" +str);
-//    }
     return {Result::State::Ok, 55};
 }
 

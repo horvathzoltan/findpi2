@@ -1,4 +1,5 @@
 #include "ipscanner.h"
+#include "sendicmp.h"
 #include <QNetworkInterface>
 #include <QTcpSocket>
 #include <iostream>
@@ -18,7 +19,7 @@ void IpScanner::log(const QString &msg)
     out.flush();
 }
 
-QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<int> ports, int timeout)
+QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<int> ports, int ptimeout, int pn, int timeout)
 {
     if(i1<1||i1>255) return {};
     if(i2<1||i2>255) return {};
@@ -33,23 +34,34 @@ QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<i
     unsigned char* ip2 = reinterpret_cast<unsigned char*>(&i);//mutató az i LSB-re
     static const QString w("|/-\\");
 
+    Ping ping;
+    ping.setVerbose(false);
+
     for(unsigned char u=i1;u<i2;u++){
         *ip2=u;
         address.setAddress(i);
-        for(auto&port:ports){
-            socket.connectToHost(address, port, QIODevice::ReadWrite);
-            bool ok = socket.waitForConnected(timeout);
-            if(ok)
-            {
-                socket.disconnectFromHost();
-                auto a = address.toString();
-                ipList[a].insert(port);
-                if(_verbose)
-                    log("\r"+a+":"+QString::number(port)+"\n");
-            }
-            else{
-                if(_verbose)
-                    log(QStringLiteral("\rsearching ")+w[u%4]+'\r');
+
+        Ping::PingResult r = ping.ping(address, ptimeout, pn);
+        if(r.ok)
+        {
+            QString l = r.ToString();
+            log("\r"+l+"\n");
+            for(auto&port:ports){
+                socket.connectToHost(address, port, QIODevice::ReadWrite);
+                bool ok = socket.waitForConnected(timeout);
+                //QString a = address.toString();
+                if(ok)
+                {
+                    socket.disconnectFromHost();
+                    auto a = address.toString();
+                    ipList[a].insert(port);
+                    if(_verbose)
+                        log("\r"+a+":"+QString::number(port)+"\n");
+                }
+                else{
+                    if(_verbose)
+                        log(QStringLiteral("\rsearching ")+w[u%4]+'\r');
+                }
             }
         }
     }

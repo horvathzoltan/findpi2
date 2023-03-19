@@ -13,167 +13,196 @@
 #include <QDebug>
 
 // https://stackoverflow.com/questions/9913661/what-is-the-proper-process-for-icmp-echo-request-reply-on-unreachable-destinatio
-
+// https://github.com/rocwangp/ping/blob/master/ping.cpp
 
 /*--------------------------------------------------------------------*/
 /*--- checksum - standard 1s complement checksum                   ---*/
 /*--------------------------------------------------------------------*/
-unsigned short Ping::checksum(char *b, int len)
+quint16 Ping::checksum(char *b, quint32 len)
 {
-    unsigned short *buf = (unsigned short *)b;
-    unsigned int sum=0;
-    unsigned short result;
+    quint16 *buf = (quint16 *)b;
+    quint32 sum=0;
+    quint16 result;
 
     for ( sum = 0; len > 1; len -= 2 )
         sum += *buf++;
     if ( len == 1 )
-        sum += *(unsigned char*)buf;
+        sum += *(quint8*)buf;
     sum = (sum >> 16) + (sum & 0xFFFF);
     sum += (sum >> 16);
     result = ~sum;
     return result;
 }
 
+void Ping::setVerbose(bool v){
+    _verbose = v;
+}
 
 /*--------------------------------------------------------------------*/
 /*--- ping - Create message and send it.                           ---*/
 /*    return 0 is ping Ok, return 1 is ping not OK.                ---*/
 /*--------------------------------------------------------------------*/
-bool Ping::ping(char *adress)
+Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, quint32 loopMax)
 {
-    const int val=255;
-    int sd;
+    //Init_PacketNoArray();
+    _nPacketNoLimit=0;
+    _cnt=0;
+    PingResult r;
+    const qint32 val=255;
+    qint32 sd;
     struct icmp* pckt;
     char packet[PACKETSIZE];
     char rpacket[PACKETSIZE];
     struct sockaddr_in r_addr;
-    int loop;
     struct hostent *hname;
     //struct sockaddr_in addr_ping;
 
-    pid = htons(getpid() & 0xFFFF);
-    proto = getprotobyname("ICMP");
-    hname = gethostbyname(adress);
-    memset(&addr_ping, 1, sizeof(addr_ping));
-    addr_ping.sin_family = hname->h_addrtype;
-    addr_ping.sin_port = 0;
-    addr_ping.sin_addr.s_addr = *(long*)hname->h_addr;
+    _pid = htons(getpid() & 0xFFFF);
+    _proto = getprotobyname("ICMP");
 
-    //addr = &addr_ping;
+    QString hostName = host.toString();
+    hname = gethostbyname(hostName.toLocal8Bit());
 
-    sd = socket(PF_INET, SOCK_DGRAM, proto->p_proto);
+    memset(&_addrPing, 1, sizeof(_addrPing));
+    _addrPing.sin_family = hname->h_addrtype;
+    _addrPing.sin_port = 0;
+    _addrPing.sin_addr.s_addr = *(in_addr_t*)hname->h_addr;
+
+//    memset(&addr_ping, 1, sizeof(addr_ping));
+//    addr_ping.sin_family = host.;
+//    addr_ping.sin_port = 0;
+//    addr_ping.sin_addr.s_addr = htonl(host.toIPv4Address());
+
+    sd = socket(PF_INET, SOCK_DGRAM, _proto->p_proto);
     if ( sd < 0 )
     {
-        perror("socket");
-        return false;
+        if(_verbose) qDebug()<<"socket";
+        return r;
     }
     if ( setsockopt(sd, SOL_IP, IP_TTL, &val, sizeof(val)) != 0)
     {
-        perror("Set TTL option");
-        return false;
+        if(_verbose) qDebug()<<"Set TTL option";
+        return r;
     }
     if ( fcntl(sd, F_SETFL, O_NONBLOCK) != 0 )
     {
-        perror("Request nonblocking I/O");
-        return false;
+        if(_verbose) qDebug()<<"Request nonblocking I/O";
+        return r;
     }
 
-    int r_addr_len = sizeof(r_addr);
-    data = "majom";
+    quint64 r_addr_len = sizeof(r_addr);
 
-    data_length = sizeof(timeval)+data.length();
-    packet_length = sizeof(icmp)+data_length;
+    _data = "majom";
+
+    _dataOffset = 8+sizeof(timeval);
+    _dataLength = sizeof(timeval)+_data.length();
+    _packetLength = sizeof(icmp)+_dataLength;
     memset(&pckt, 0, sizeof(pckt));
     pckt = (icmp*)packet;
 
     pckt->icmp_type = ICMP_ECHO;
     pckt->icmp_code = 0;
-    pckt->icmp_id = pid;
+    pckt->icmp_id = _pid;
 
     struct timeval *tvsend = (struct timeval*)pckt->icmp_data;
 
-    strncpy(&packet[8+sizeof(timeval)],data.c_str(),data.length());
+    auto d8 = _data.toLocal8Bit();
+    strncpy(packet+_dataOffset,d8,_data.length());
 
     //select  timeout
     struct timeval timeout;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 300*1000;
+    _timeoutMillis = timeoutMillis;
+    timeout.tv_usec = _timeoutMillis*1000;
 
     fd_set recvfd;
-    int maxfd = sd + 1;
+    qint32 maxfd = sd + 1;
 
-    bool pingOk=false;
-    for (loop=0;loop < 10; loop++)
+    //bool pingOk=false;
+    for (quint32 loop=0; loop < loopMax; loop++)
     {
         pckt->icmp_cksum = 0;
-        pckt->icmp_seq = cnt++;
-        pckt->icmp_cksum = checksum(packet, packet_length);
+        //qDebug()<<"cnt"<<_cnt;
+        pckt->icmp_seq = _cnt++;        
+        pckt->icmp_cksum = checksum(packet, _packetLength);
         gettimeofday(tvsend, NULL);
 
-        int s = sendto(sd, pckt, packet_length, 0, (struct sockaddr*)&addr_ping, sizeof(addr_ping));
+        ssize_t s = sendto(sd, pckt, _packetLength, 0,
+                           (struct sockaddr *)&_addrPing, sizeof(_addrPing));
 
         if(s <= 0)
-            qDebug()<<"sendto";
+        {
+            if(_verbose) qDebug()<<"sendto";
+        }
 
         FD_ZERO(&recvfd);
         FD_SET(sd, &recvfd);
 
-        int n = select(maxfd, &recvfd, NULL, NULL, &timeout);
+        qint32 n = select(maxfd, &recvfd, NULL, NULL, &timeout);
 
         if(n < 0)
         {
-            qDebug()<<"Receive_Packet: select error...\n";
+            if(_verbose) qDebug()<<"Receive_Packet: select error...\n";
+           // continue;
         }
         //if timeout, then needn't receive packet again, so set m_nCnt to m_nSend and break
         else if(n == 0)
         {
-            qDebug() << "Request Timeout...";
+            if(_verbose) qDebug() << "Request Timeout...";
+          //  continue;
         }
 
-        int packSize = recvfrom(sd, &rpacket, PACKETSIZE,
-                                    0, (struct sockaddr*)&r_addr,(socklen_t*) &r_addr_len);
+        ssize_t packSize = recvfrom(sd, &rpacket, PACKETSIZE, 0,
+                                    (struct sockaddr *)&r_addr, (socklen_t *)&r_addr_len);
 
         if(packSize < 0)
         {
-            qDebug()<< "recvfrom error...\n";
+            if(_verbose) qDebug()<< "recvfrom error...\n";
+            continue;
         }
-        else
+
+        r = unpack(rpacket, packSize);
+        if (r.ok)
         {
-            int u_size = unpack(rpacket, packSize);
-            if (u_size > 0)
-            {
-                pingOk=true;
-                //continue;
-            }
-        }
-        usleep(timeout.tv_usec);
+            break;
+        }        
     }
 
-    return pingOk;
+    return r;
 }
 
-int Ping::unpack(char* packet, int packSize)
+Ping::PingResult Ping::unpack(char* packet, quint32 packSize)
 {
+    PingResult r;
+    r.packSize = packSize;
+    char* brr = inet_ntoa(_addrPing.sin_addr);
+    r.from = QString::fromLocal8Bit(brr);
 
     icmp* m_recvpack = (icmp*)packet;
     //the packet received is IP_packet
     struct ip* recv_ip = (struct ip*)m_recvpack;
-    //IP_header : ip_hl is 4 bit , need to multi 4  //why?
-    int iphdrlen = recv_ip->ip_hl << 2;
+
+    r.ttl = recv_ip->ip_ttl;
+    //IP_header : ip_hl is 4 bit , need to multi 4  //why?    
+    qint32 iphdrlen = recv_ip->ip_hl << 2;
     //last len is ICMP_packet_len
     packSize -= iphdrlen;
 
     //remove the IP_Header then get ICMP_PACKET
     struct icmp *r_pckt = (struct icmp*)(m_recvpack + iphdrlen);
 
+    r.icmpSeq = r_pckt->icmp_seq;
     //ICMP_header len is 8, if the packet len less than 8, then the packet is error
-    if(packSize < 8)
-        return -1;
+    if(packSize < 8) return r;
+
+    if(r_pckt->icmp_type == ICMP_DEST_UNREACH)
+    {
+        qDebug()<<"ICMP_DEST_UNREACH";
+        return r;
+    }
 
     //the packet is not REPLY_packet
-    if(r_pckt->icmp_type != ICMP_ECHOREPLY)
-        return -1;
-
+    if(r_pckt->icmp_type != ICMP_ECHOREPLY) return r;   
 
     // icmphdr * pkt = (icmphdr *)(recv_icmp);
     //the packet_id is not the id which is set when send
@@ -183,55 +212,58 @@ int Ping::unpack(char* packet, int packSize)
 //    if(id2 != id)
 //        return -1;
 
-
-    struct timeval *sendtime, recvtime;
     //ICMP_data is the send_time which is set when send
-    sendtime = (struct timeval*)r_pckt->icmp_data;
+    struct timeval* sendtime = (struct timeval *)r_pckt->icmp_data;
+    struct timeval recvtime;
     gettimeofday(&recvtime, NULL);
     tv_sub(&recvtime, sendtime);
 
-    double send_to_recv_time = recvtime.tv_sec * 1000 + (double)recvtime.tv_usec / 1000;
+    qreal send_to_recv_time = recvtime.tv_sec * 1000 + (qreal)recvtime.tv_usec / 1000;
+
+    r.time = send_to_recv_time;
 
     //the packet maybe the previous timeout packet, need to throw
-   // if(send_to_recv_time > m_nMaxTimeWait * 1000)
-   //     return -1;
+    if(send_to_recv_time > _timeoutMillis * 1000) return r;
 
-    std::string m(&packet[8+sizeof(timeval)]);
-    if(m!=data)
-        return -1;
+    QString m = QString::fromLocal8Bit(&packet[_dataOffset], _data.length());
+    if(m!=_data) return r;
 
-    QString br = QString::fromStdString(m);
-
-    auto brr = inet_ntoa(addr_ping.sin_addr);
-    qDebug()<< packSize<<"bytes from"<<brr<<"icmp_seq="<<r_pckt->icmp_seq<<
-               "ttl="<<recv_ip->ip_ttl<<"time="<<send_to_recv_time<<"ms"<<br;
+    if(_verbose)
+    {
+        qDebug()<< packSize<<"bytes from"<<brr<<"icmp_seq="<<r_pckt->icmp_seq<<
+               "ttl="<<recv_ip->ip_ttl<<"time="<<send_to_recv_time<<"ms"<<m;
+    }
 
     //m_bPacketNo used to judge this ICMP_PACKET whether is repetive or not
     //if icmp_seq more than the size of m_bPacketNo, icmp_seq reduce m_nPacketNoLimit
-//    if(recv_icmp->icmp_seq - m_nPacketNoLimit >= MAX_PACKET_NO)
+//    int n = r_pckt->icmp_seq - _nPacketNoLimit;
+//    if(n >= MAX_PACKET_NO)
 //    {
 //        Init_PacketNoArray();
-//        m_nPacketNoLimit += MAX_PACKET_NO;
+//        _nPacketNoLimit += MAX_PACKET_NO;
 //    }
-//    //judge whether there exist loop on the way to destination
-//    if(m_bPacketNo[recv_icmp->icmp_seq - m_nPacketNoLimit] == true)
+////    //judge whether there exist loop on the way to destination
+//    if(_bPacketNo[n] == true)
 //    {
-//        std::cout << " DUP!\n";
-//        return -1;
+//        if(_verbose) qDebug() << " DUP";
+//        //return r;
 //    }
 //    else
 //    {
-//        std::cout << "\n";
-//        m_bPacketNo[recv_icmp->icmp_seq - m_nPacketNoLimit] = true;
-//        return 1;
+//        if(_verbose) qDebug() << "hutty";
+//        _bPacketNo[n] = true;
+//        //return 1;
+//        r.ok = true;
 //    }
-    return packSize;
+
+    r.ok = true;
+    return r;
 }
 
 void Ping::tv_sub(struct timeval *in, struct timeval *out)
 {
-    int sec = in->tv_sec - out->tv_sec;
-    int usec = in->tv_usec - out->tv_usec;
+    qint64 sec = in->tv_sec - out->tv_sec;
+    qint64 usec = in->tv_usec - out->tv_usec;
     if(usec < 0)
     {
         in->tv_sec = sec - 1;
@@ -243,3 +275,16 @@ void Ping::tv_sub(struct timeval *in, struct timeval *out)
         in->tv_usec = usec;
     }
 }
+
+QString Ping::PingResult::ToString()
+{
+    QString a = QStringLiteral("%1 bytes from %2 icmp_seq=%3 ttl=%4 time=%5ms")
+            .arg(packSize).arg(from).arg(icmpSeq).arg(ttl).arg(time);
+    return a;
+}
+
+//void Ping::Init_PacketNoArray()
+//{
+//    for(int i = 0; i < MAX_PACKET_NO; ++i)
+//        _bPacketNo[i] = false;
+//}
