@@ -278,8 +278,8 @@ void Ping::tv_sub(struct timeval *in, struct timeval *out)
 
 QString Ping::PingResult::ToString()
 {
-    QString a = QStringLiteral("%1 bytes from %2 icmp_seq=%3 ttl=%4 time=%5ms")
-            .arg(packSize).arg(from).arg(icmpSeq).arg(ttl).arg(time);
+    QString a = QStringLiteral("%1 icmp_seq=%2 ttl=%3 time=%4ms")//%1 bytes from
+            .arg(from).arg(icmpSeq).arg(ttl).arg(time);//.arg(packSize)
     return a;
 }
 

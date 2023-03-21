@@ -3,6 +3,8 @@
 #include <QNetworkInterface>
 #include <QTcpSocket>
 #include <iostream>
+#include <QHostInfo>
+#include "gethostname.h"
 
 bool IpScanner::_verbose;
 
@@ -37,15 +39,52 @@ QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<i
     Ping ping;
     ping.setVerbose(false);
 
+    auto localIps = GetHostName::GetAllLocalIp();
     for(unsigned char u=i1;u<i2;u++){
         *ip2=u;
         address.setAddress(i);
 
-        Ping::PingResult r = ping.ping(address, ptimeout, pn);
-        if(r.ok)
+        bool ok;
+
+        GetHostName::LocalIpModel* lip2=nullptr;
+        for(GetHostName::LocalIpModel &lip : localIps) {
+            if (lip.ip == address.toString()) {
+                lip2 = &lip;
+                break;
+            }
+        }
+
+        QString l;
+        QString mac;
+        QString hostname;
+        if(lip2!=nullptr)
         {
-            QString l = r.ToString();
-            log("\r"+l+"\n");
+            l = lip2->ip+"(localhost)";
+            mac = lip2->mac;
+            hostname = lip2->hostname;
+            ok = true;
+        }
+        else
+        {
+            Ping::PingResult r = ping.ping(address, ptimeout, pn);
+            l = r.ToString();
+            mac = GetHostName::getMac(address.toString());
+            hostname = GetHostName::get(address.toString());
+            ok = r.ok;
+        }
+
+        if(ok)
+        {                       
+            QString vendor = GetHostName::GetVendor(mac);
+
+            QString msg = l;
+
+            if(!hostname.isEmpty())
+                msg+=" "+hostname;
+            if(!vendor.isEmpty())
+                msg+=" "+vendor;
+
+            log("\r"+msg+"\n");
             for(auto&port:ports){
                 socket.connectToHost(address, port, QIODevice::ReadWrite);
                 bool ok = socket.waitForConnected(timeout);
@@ -68,6 +107,7 @@ QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<i
     if(_verbose) log("\r");
     return ipList;
 }
+
 
 QList<QHostAddress> IpScanner::GetLocalAddresses()
 {

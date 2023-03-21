@@ -94,6 +94,9 @@ message( "hmmmm "$$HOME/$$COMMON_LIBS)
 SOURCES += \
         commandlineparserhelper.cpp \
         coreappworker.cpp \
+        downloader.cpp \
+        filehelper.cpp \
+        gethostname.cpp \
         ipscanner.cpp \
         logger.cpp \
         main.cpp \
@@ -104,6 +107,9 @@ SOURCES += \
 HEADERS += \
     commandlineparserhelper.h \
     coreappworker.h \
+    downloader.h \
+    filehelper.h \
+    gethostname.h \
     ipscanner.h \
     logger.h \
     nameof.h \
