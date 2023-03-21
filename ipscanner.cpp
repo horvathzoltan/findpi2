@@ -116,7 +116,7 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress, QHost
             if(kv!=macAddress.constEnd())
                 msg+=" <- "+kv.value();
 
-            log(msg);
+            log(msg+'\n');
         }
     }
     return ipList;
