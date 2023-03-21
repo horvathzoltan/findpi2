@@ -176,7 +176,7 @@ Ping::PingResult Ping::unpack(char* packet, quint32 packSize)
     PingResult r;
     r.packSize = packSize;
     char* brr = inet_ntoa(_addrPing.sin_addr);
-    r.from = QString::fromLocal8Bit(brr);
+    r.fromIp = QString::fromLocal8Bit(brr);
 
     icmp* m_recvpack = (icmp*)packet;
     //the packet received is IP_packet
@@ -279,7 +279,7 @@ void Ping::tv_sub(struct timeval *in, struct timeval *out)
 QString Ping::PingResult::ToString()
 {
     QString a = QStringLiteral("%1 icmp_seq=%2 ttl=%3 time=%4ms")//%1 bytes from
-            .arg(from).arg(icmpSeq).arg(ttl).arg(time);//.arg(packSize)
+            .arg(fromIp).arg(icmpSeq).arg(ttl).arg(time);//.arg(packSize)
     return a;
 }
 

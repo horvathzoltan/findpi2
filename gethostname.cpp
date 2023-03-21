@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QNetworkInterface>
 #include <QHostInfo>
+#include <qfileinfo.h>
 
 Downloader* GetHostName::_downloader = nullptr;
 quint32 GetHostName::_downloader_status = 0;
@@ -92,41 +93,39 @@ QString GetHostName::GetVendor(const QString &mac){
     return {};
 }
 
-QList<GetHostName::OuiModel> GetHostName::Download(const QString& url){
-     _downloader = new Downloader();
-     _downloader_status = 0;
-     QObject::connect(_downloader, &Downloader::onReady, &GetHostName::readFile);
-     _downloader->getData(url);
-     qDebug()<<"file letöltés...";
+QList<GetHostName::OuiModel> GetHostName::Download(const QString& url)
+{
+    bool download;
+    QFileInfo fi("oui.txt");
+    if(fi.exists()){
+        auto now = QDateTime::currentDateTime();
+        qint64 t = fi.metadataChangeTime().secsTo(now);
+        download = t>24*60*60;
+    } else {
+        download = true;
+    }
 
-     for(quint32 i = 0;i<10;i++)
-     {
-        if(_downloader_status==1) break;
-        QEventLoop loop;
-        QTimer::singleShot(10 * 1000, &loop, SLOT(quit()));
-        loop.exec();
-     };
+    if(download)
+    {
+        bool ok = Downloader::Wget(url, fi.absoluteFilePath());
+        if(!ok) return {};
+    }
 
-     QList<GetHostName::OuiModel> m;
-     QStringList lines = FileHelper::LoadLinesContains("/home/zoli/oui.txt", {"hex"});//,"raspberry"
-     int i=0;
-     for(auto&line:lines){         
-         QStringList tokens1 = line.split('\t', Qt::SplitBehaviorFlags::SkipEmptyParts);         
-         if(tokens1.length()<2) continue;
-         QStringList tokens2 = tokens1[0].split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
-         if(tokens2.length()<2) continue;
-         if(tokens2[0].isEmpty()) continue;
-         if(tokens1[1].isEmpty()) continue;
-         OuiModel oui{ .oui=tokens2[0].replace('-', ':').toUpper(), .vendor=tokens1[1]};
-         m<<oui;
-         i++;
-     }
-     return m;
-}
+    QList<GetHostName::OuiModel> m;
+    QStringList lines = FileHelper::LoadLinesContains(fi.absoluteFilePath(), {"hex"});
 
-void GetHostName::readFile(){
-    qDebug()<<"file lent van";
-    _downloader_status = 1;
+    for(auto&line:lines)
+    {
+        QStringList tokens1 = line.split('\t', Qt::SplitBehaviorFlags::SkipEmptyParts);
+        if(tokens1.length()<2) continue;
+        QStringList tokens2 = tokens1[0].split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
+        if(tokens2.length()<2) continue;
+        if(tokens2[0].isEmpty()) continue;
+        if(tokens1[1].isEmpty()) continue;
+        OuiModel oui{ .oui=tokens2[0].replace('-', ':').toUpper(), .vendor=tokens1[1]};
+        m<<oui;
+    }
+    return m;
 }
 
 
@@ -148,3 +147,4 @@ QList<GetHostName::LocalIpModel> GetHostName::GetAllLocalIp() {
 }
 
 
+//wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb

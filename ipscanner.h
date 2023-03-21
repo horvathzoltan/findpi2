@@ -13,7 +13,7 @@ private:
 
     static void log(const QString& mag);
 public:                
-    static QMap<QString, QSet<int>> Scan(QHostAddress ip, int i1, int i2, QSet<int> p, int ptimeout, int pn, int timeout);
+    static QMap<QString, QSet<int>> Scan(QMap<QString,QString> macAddress, QHostAddress ip, int i1, int i2, QSet<int> p, int ptimeout, int pn, int timeout);
     static QList<QHostAddress> GetLocalAddresses();
     static void setVerbose(bool v);
 };

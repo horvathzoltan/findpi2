@@ -21,7 +21,7 @@ void IpScanner::log(const QString &msg)
     out.flush();
 }
 
-QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<int> ports, int ptimeout, int pn, int timeout)
+QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress, QHostAddress ip, int i1, int i2, QSet<int> ports, int ptimeout, int pn, int timeout)
 {
     if(i1<1||i1>255) return {};
     if(i2<1||i2>255) return {};
@@ -54,57 +54,71 @@ QMap<QString, QSet<int>> IpScanner::Scan(QHostAddress ip, int i1, int i2, QSet<i
             }
         }
 
-        QString l;
-        QString mac;
-        QString hostname;
+        QString ip_str;
+        QString mac_str;
+        QString hostname_str;
+        QString time_str;
         if(lip2!=nullptr)
         {
-            l = lip2->ip+"(localhost)";
-            mac = lip2->mac;
-            hostname = lip2->hostname;
+            ip_str = lip2->ip;
+            mac_str = lip2->mac;
+            hostname_str = lip2->hostname+"(localhost)";
+            time_str = "";
             ok = true;
         }
         else
         {
             Ping::PingResult r = ping.ping(address, ptimeout, pn);
-            l = r.ToString();
-            mac = GetHostName::getMac(address.toString());
-            hostname = GetHostName::get(address.toString());
+            ip_str = r.fromIp;
+            mac_str = GetHostName::getMac(address.toString());
+            hostname_str = GetHostName::get(address.toString());
+
+            if(hostname_str.isEmpty())
+                hostname_str = Downloader::AvahiResolve(r.fromIp);
+
+            time_str = QString::number(r.time);
             ok = r.ok;
         }
 
         if(ok)
         {                       
-            QString vendor = GetHostName::GetVendor(mac);
+            QString vendor = GetHostName::GetVendor(mac_str);
 
-            QString msg = l;
+            QString ports_txt;
 
-            if(!hostname.isEmpty())
-                msg+=" "+hostname;
-            if(!vendor.isEmpty())
-                msg+=" "+vendor;
-
-            log("\r"+msg+"\n");
             for(auto&port:ports){
                 socket.connectToHost(address, port, QIODevice::ReadWrite);
                 bool ok = socket.waitForConnected(timeout);
-                //QString a = address.toString();
+
                 if(ok)
                 {
                     socket.disconnectFromHost();
                     auto a = address.toString();
                     ipList[a].insert(port);
-                    if(_verbose)
-                        log("\r"+a+":"+QString::number(port)+"\n");
-                }
-                else{
-                    if(_verbose)
-                        log(QStringLiteral("\rsearching ")+w[u%4]+'\r');
-                }
+                    if(!ports_txt.isEmpty()) ports_txt+=',';
+                    ports_txt+=QString::number(port);
+                }                
             }
+            QString msg = mac_str;
+
+            msg += " ("+ ip_str;
+            if(!ports_txt.isEmpty())
+                msg += ":"+ports_txt;
+            msg+=")";
+
+            if(!vendor.isEmpty())
+                msg+=" "+vendor;
+
+            if(!hostname_str.isEmpty())
+                msg+=" -> "+hostname_str;
+
+            QMap<QString, QString>::const_iterator kv = macAddress.constFind(mac_str);
+            if(kv!=macAddress.constEnd())
+                msg+=" <- "+kv.value();
+
+            log(msg);
         }
     }
-    if(_verbose) log("\r");
     return ipList;
 }
 

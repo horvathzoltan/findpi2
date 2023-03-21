@@ -5,6 +5,9 @@
 #include "commandlineparserhelper.h"
 #include "work1.h"
 
+// Projects/Run/CommanLineArguments
+// -m "b8:27:eb:e3:cc:41=pi1 b8:27:eb:e3:cc:42=pi2"
+
 auto main(int argc, char *argv[]) -> int
 {
     Logger::Init(Logger::ErrLevel::INFO, Logger::DbgLevel::TRACE, true, true);
@@ -24,10 +27,12 @@ auto main(int argc, char *argv[]) -> int
     parser.addVersionOption();  
 
     const QString OPTION_IP = QStringLiteral("ip");
+    const QString OPTION_MAC = QStringLiteral("mac");
 //    const QString OPTION_OUT = QStringLiteral("output");
 //    const QString OPTION_BACKUP = QStringLiteral("backup");
 
     CommandLineParserHelper::addOption(&parser, OPTION_IP, QStringLiteral("ipaddress"));
+    CommandLineParserHelper::addOption(&parser, OPTION_MAC, QStringLiteral("macaddress"));
 //    CommandLineParserHelper::addOption(&parser, OPTION_OUT, QStringLiteral("csv file as output"));
 //    CommandLineParserHelper::addOptionBool(&parser, OPTION_BACKUP, QStringLiteral("set if backup is needed"));
 
@@ -36,8 +41,9 @@ auto main(int argc, char *argv[]) -> int
     Work1 w1;
 
     QString ip = parser.value(OPTION_IP);
+    QString mac = parser.value(OPTION_MAC);
 
-    Work1::Params w1Params(ip);
+    Work1::Params w1Params(ip, mac);
     auto w1Result = w1.doWork(w1Params); // indítás direkt   
 
     return (w1Result.state==Work1::Result::Ok)?0:-1;

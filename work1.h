@@ -9,8 +9,9 @@ class Work1
 {
 public:
     struct Params{
-        explicit Params(QString ipAddress);
+        explicit Params(const QString& ipAddress, const QString& mac);
         QHostAddress ipAddress;
+        QMap<QString,QString> macAddress;
 
         bool IsValid();
     };

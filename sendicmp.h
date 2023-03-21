@@ -30,7 +30,7 @@ class Ping
 public:
     struct PingResult{
         quint32 packSize;
-        QString from;
+        QString fromIp;
         quint16 icmpSeq;
         quint8 ttl;
         qreal time;

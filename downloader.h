@@ -9,22 +9,20 @@
 #include <QUrl>
 #include <QDebug>
 
-class Downloader : public QObject
+class Downloader
 {
-    Q_OBJECT
-
 public:
-    explicit Downloader(QObject *parent = 0);
+   struct Output
+    {
+        QString stdOut;
+        QString stdErr;
+        int exitCode;
+        QString ToString();
+    };
 
-signals:
-    void onReady();
-
-public slots:
-    void getData(const QString& urlstr);
-    void onResult(QNetworkReply *reply);
-
-private:
-    QNetworkAccessManager *manager;
+    static Output Execute(const QString& cmd, const QStringList& args, int timeout = -1);
+    static bool Wget(const QString &url, const QString &filename);
+    static QString AvahiResolve(const QString &filename);
 };
 
 #endif // DOWNLOADER\_H

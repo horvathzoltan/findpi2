@@ -1,45 +1,55 @@
 #include "downloader.h"
 
-Downloader::Downloader(QObject *parent) : QObject(parent)
+#include <QCoreApplication>
+#include <QProcess>
+
+bool Downloader::Wget(const QString &url, const QString &filename)
 {
-    // Initialize manager ...
-    manager = new QNetworkAccessManager();
-    // ... and connect the signal to the handler
-    connect(manager, &QNetworkAccessManager::finished, this, &Downloader::onResult);
+    if(url.isEmpty()) return false;
+    if(filename.isEmpty()) return false;
+    auto out = Execute("wget",{url, "-O", filename});
+    return !out.exitCode;
 }
 
-void Downloader::getData(const QString& urlstr)
-{
-    QUrl url(urlstr);
-    QNetworkRequest request(url);
+Downloader::Output Downloader::Execute(const QString& cmd, const QStringList& args, int timeout){
+    QProcess process;
+    static QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LD_LIBRARY_PATH", "/usr/lib"); // workaround - https://bugreports.qt.io/browse/QTBUG-2284
+    process.setProcessEnvironment(env);
+    static auto path = QCoreApplication::applicationDirPath();
+    process.setWorkingDirectory(path);
 
-    if(url.scheme()=="https")
+    process.start(cmd,args);
+
+    if (!process.waitForStarted(-1))
     {
-        QSslConfiguration conf = request.sslConfiguration();
-        conf.setPeerVerifyMode(QSslSocket::VerifyNone);
-        request.setSslConfiguration(conf);
+        qDebug()<<"Could not start ";
+        return {"","",1};
     }
 
-    manager->get(request);
+    bool isFinished = process.waitForFinished(timeout);
+
+    if(!isFinished)
+    {
+        process.close();
+        return {"","",1};
+    }
+
+    Output e{process.readAllStandardOutput(),
+                process.readAllStandardError(),
+                process.exitCode()};
+    return e;
 }
 
-void Downloader::onResult(QNetworkReply *reply)
+QString Downloader::AvahiResolve(const QString &ip)
 {
-    // If an error occurs in the process of obtaining data
-    if(reply->error()){
-        // We inform about it and show the error information
-        qDebug() << "ERROR";
-        qDebug() << reply->errorString();
-    } else {
-        // Otherwise we create an object file for use with
-        QFile *file = new QFile("/home/zoli/oui.txt");
-        // Create a file, or open it to overwrite ...
-        if(file->open(QFile::WriteOnly)){
-            file->write(reply->readAll());  // ... and write all the information from the page file
-            file->flush();
-            file->close();                  // close file
-        qDebug() << "Downloading is completed";
-        emit onReady(); // Sends a signal to the completion of the receipt of the file
-        }
-    }
+    if(ip.isEmpty()) return {};
+    auto out = Execute("avahi-resolve",{"-a", ip}, 200);
+    auto lines = out.stdOut.split('\n');
+    if(lines.length()<1) return {};
+    auto tokens = lines[0].split('\t');
+    if(tokens.length()<2) return {};
+
+    QString hostname = tokens[1];
+    return hostname;
 }
