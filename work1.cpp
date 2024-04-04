@@ -2,10 +2,11 @@
 #include "logger.h"
 #include "nameof.h"
 #include "ipscanner.h"
+#include "processhelper.h"
 #include <QDebug>
 
-Work1::Params::Params(const QString& _ipAddress, const QString& mac){
-    ipAddress = QHostAddress(_ipAddress);
+void Work1::Params::GetHostAddress(){
+    ipAddress = QHostAddress(_ip);
     if(ipAddress.isNull())
     {
         auto addresses = IpScanner::GetLocalAddresses();
@@ -14,9 +15,9 @@ Work1::Params::Params(const QString& _ipAddress, const QString& mac){
         }
     }
 
-    if(!mac.isEmpty())
+    if(!_mac.isEmpty())
     {
-        QStringList lines = mac.split(' ');
+        QStringList lines = _mac.split(' ');
         if(!lines.isEmpty())
         {
             for(auto&l:lines)
@@ -37,6 +38,14 @@ auto Work1::Params::IsValid() -> bool
     return err.isEmpty();
 }
 
+Work1::Params Work1::Params::Parse(const QCommandLineParser &parser){
+    Params m;
+    m._ip = parser.value("ip");
+    m._mac = parser.value("mac");
+    m._pwd = parser.value("secret");
+    return m;
+}
+
 auto Work1::Result::ToString() -> QString
 {
     if(state==Ok) return QStringLiteral("a: ")+QString::number(value);
@@ -49,9 +58,11 @@ auto Work1::doWork(Params params) -> Result
 {
     zInfo(QStringLiteral("params: %1").arg(params.ipAddress.toString()));
 
+    ProcessHelper::SetPassword(params._pwd);
+
     IpScanner::setVerbose(false);
     QMap<QString, QSet<int>> result =
-            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 1997, 8080}, 150, 1, 100);
+            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 1997, 8080}, 300, 5, 100);
 
 //    QList<QString> keys = result.keys();
 //    for (auto&key : keys)

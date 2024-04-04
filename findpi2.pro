@@ -95,26 +95,30 @@ SOURCES += \
         commandlineparserhelper.cpp \
         coreappworker.cpp \
         downloader.cpp \
-        filehelper.cpp \
+        fileerror.cpp \
         gethostname.cpp \
         ipscanner.cpp \
         logger.cpp \
         main.cpp \
+        processhelper.cpp \
         sendicmp.cpp \
         signalhelper.cpp \
+        textfilehelper.cpp \
         work1.cpp
 
 HEADERS += \
     commandlineparserhelper.h \
     coreappworker.h \
     downloader.h \
-    filehelper.h \
+    fileerror.h \
     gethostname.h \
     ipscanner.h \
     logger.h \
     nameof.h \
+    processhelper.h \
     sendicmp.h \
     signalhelper.h \
+    textfilehelper.h \
     work1.h
 
 message(includepath = $$INCLUDEPATH)

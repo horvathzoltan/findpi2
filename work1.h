@@ -1,6 +1,7 @@
 #ifndef WORK1_H
 #define WORK1_H
 
+#include <QCommandLineParser>
 #include <QHostAddress>
 #include <QString>
 #include <QThread>
@@ -9,11 +10,17 @@ class Work1
 {
 public:
     struct Params{
-        explicit Params(const QString& ipAddress, const QString& mac);
+        QString _ip;
+        QString _mac;
+
         QHostAddress ipAddress;
         QMap<QString,QString> macAddress;
+        QString _pwd;
 
         bool IsValid();
+
+        void GetHostAddress();
+        static Params Parse(const QCommandLineParser& parser);
     };
 
     struct Result{

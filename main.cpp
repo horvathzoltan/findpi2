@@ -24,15 +24,17 @@ auto main(int argc, char *argv[]) -> int
 
     parser.setApplicationDescription(QStringLiteral("command line test1 app."));
     parser.addHelpOption();
-    parser.addVersionOption();  
+    parser.addVersionOption();
 
-    const QString OPTION_IP = QStringLiteral("ip");
-    const QString OPTION_MAC = QStringLiteral("mac");
-//    const QString OPTION_OUT = QStringLiteral("output");
+//const QString OPTION_IP = QStringLiteral("ip");
+  //  const QString OPTION_MAC = QStringLiteral("mac");
+//    const QString OPTION_PWD = QStringLiteral("secret");
+    //    const QString OPTION_OUT = QStringLiteral("output");
 //    const QString OPTION_BACKUP = QStringLiteral("backup");
 
-    CommandLineParserHelper::addOption(&parser, OPTION_IP, QStringLiteral("ipaddress"));
-    CommandLineParserHelper::addOption(&parser, OPTION_MAC, QStringLiteral("macaddress"));
+    CommandLineParserHelper::addOption(&parser, "ip", QStringLiteral("ipaddress"));
+    CommandLineParserHelper::addOption(&parser, "mac", QStringLiteral("macaddress"));
+    CommandLineParserHelper::addOption(&parser, "secret", QStringLiteral("secret"));
 //    CommandLineParserHelper::addOption(&parser, OPTION_OUT, QStringLiteral("csv file as output"));
 //    CommandLineParserHelper::addOptionBool(&parser, OPTION_BACKUP, QStringLiteral("set if backup is needed"));
 
@@ -40,10 +42,10 @@ auto main(int argc, char *argv[]) -> int
 
     Work1 w1;
 
-    QString ip = parser.value(OPTION_IP);
-    QString mac = parser.value(OPTION_MAC);
 
-    Work1::Params w1Params(ip, mac);
+    Work1::Params w1Params = Work1::Params::Parse(parser);
+    w1Params.GetHostAddress();
+
     auto w1Result = w1.doWork(w1Params); // indítás direkt   
 
     return (w1Result.state==Work1::Result::Ok)?0:-1;

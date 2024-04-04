@@ -1,6 +1,7 @@
 #include "gethostname.h"
-#include "filehelper.h"
+#include "textfilehelper.h"
 #include "downloader.h"
+#include "processhelper.h"
 
 #include <stdio.h>
 #include <netdb.h>
@@ -68,12 +69,17 @@ QString GetHostName::get(const QString& addr)
 
 QString GetHostName::getMac(const QString &addr)
 {
-    auto lines = FileHelper::LoadLines("/proc/net/arp");
+    //FileErrors err;
+    //auto lines = TextFileHelper::LoadLines("/proc/net/arp", &err);
 
-    for(auto&line:lines){
-        QStringList tokens = line.split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
-        if(tokens[0]==addr){
-            return tokens[3];
+    ProcessHelper::Output out = ProcessHelper::ShellExecuteSudo("cat /proc/net/arp");
+    if(!out.stdOut.isEmpty()){
+        QStringList lines = out.stdOut.split('\n');
+        for(auto&line:lines){
+            QStringList tokens = line.split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
+            if(tokens[0]==addr){
+                return tokens[3];
+            }
         }
     }
     return {};
@@ -112,7 +118,8 @@ QList<GetHostName::OuiModel> GetHostName::Download(const QString& url)
     }
 
     QList<GetHostName::OuiModel> m;
-    QStringList lines = FileHelper::LoadLinesContains(fi.absoluteFilePath(), {"hex"});
+    FileErrors err;
+    QStringList lines = TextFileHelper::LoadLinesContains(fi.absoluteFilePath(), {"hex"}, &err);
 
     for(auto&line:lines)
     {
