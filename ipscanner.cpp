@@ -128,6 +128,8 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
             if(kv!=macAddress.constEnd())
                 msg+=" <- "+kv.value();
 
+// ssh-keygen -R '172.16.1.232'
+// ssh pi@172.16.1.232 -o StrictHostKeyChecking=no cat /sys/firmware/devicetree/base/model
 
             if(hostname_str.endsWith("(localhost)")){
                 msg = "\033[1;33m"+msg+"\e[0m";
@@ -136,48 +138,52 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                 QString hwinfo_desc;
                 QString piModelName;
                 if(hasSSHPort){
-                    QString cmd0 = QStringLiteral("ssh pi@%1 cat /sys/firmware/devicetree/base/model").arg(ip_str);
-                    ProcessHelper::Output out0 = ProcessHelper::ShellExecute(cmd0, 5000);
+                    QString cmd1 = QStringLiteral("ssh-keygen -R '%1'").arg(ip_str);
+                    ProcessHelper::Output out1 = ProcessHelper::ShellExecute(cmd1, 5000);
+                    if(out1.exitCode==0){
+                        QString cmd0 = QStringLiteral("ssh pi@%1 cat /sys/firmware/devicetree/base/model").arg(ip_str);
+                        ProcessHelper::Output out0 = ProcessHelper::ShellExecute(cmd0, 5000);
 
-                    if(out0.exitCode==0 && !out0.stdOut.isEmpty())
-                    {
-                        QStringList lines = out0.stdOut.split('\n');
-                        if(lines.count()>=1){
-                            piModelName = lines[0];
-                        }
-                    }
-
-                    QString cmd = QStringLiteral("ssh pi@%1 readlink /home/pi/run").arg(ip_str);
-                    ProcessHelper::Output out = ProcessHelper::ShellExecute(cmd, 5000);
-
-                    QString projectFolder;
-                    QString hwinfoName = "hwinfo.csv";
-
-                    if(out.exitCode==0 && !out.stdOut.isEmpty())
-                    {
-                        QStringList lines = out.stdOut.split('\n');
-                        if(lines.count()>=1){
-                            QString line = lines[0];
-                            int ix = line.lastIndexOf('/');
-                            if(ix>0){
-                                projectName = line.mid(ix+1);
-                                projectFolder = line.left(ix);
+                        if(out0.exitCode==0 && !out0.stdOut.isEmpty())
+                        {
+                            QStringList lines = out0.stdOut.split('\n');
+                            if(lines.count()>=1){
+                                piModelName = lines[0];
                             }
-                         }
-                    }
+                        }
 
-                    if(!projectFolder.isEmpty()){
-                        QString hwifoFullPath = projectFolder+'/'+hwinfoName;
-
-                        QString cmd = QStringLiteral("ssh pi@%1 cat %2").arg(ip_str).arg(hwifoFullPath);
+                        QString cmd = QStringLiteral("ssh pi@%1 readlink /home/pi/run").arg(ip_str);
                         ProcessHelper::Output out = ProcessHelper::ShellExecute(cmd, 5000);
-                        if(out.exitCode==0 && !out.stdOut.isEmpty()){
+
+                        QString projectFolder;
+                        QString hwinfoName = "hwinfo.csv";
+
+                        if(out.exitCode==0 && !out.stdOut.isEmpty())
+                        {
                             QStringList lines = out.stdOut.split('\n');
                             if(lines.count()>=1){
                                 QString line = lines[0];
-                                int ix2 = line.indexOf(';');
-                                if(ix2>0){
-                                    hwinfo_desc = line.mid(ix2+1);
+                                int ix = line.lastIndexOf('/');
+                                if(ix>0){
+                                    projectName = line.mid(ix+1);
+                                    projectFolder = line.left(ix);
+                                }
+                            }
+                        }
+
+                        if(!projectFolder.isEmpty()){
+                            QString hwifoFullPath = projectFolder+'/'+hwinfoName;
+
+                            QString cmd = QStringLiteral("ssh pi@%1 cat %2").arg(ip_str).arg(hwifoFullPath);
+                            ProcessHelper::Output out = ProcessHelper::ShellExecute(cmd, 5000);
+                            if(out.exitCode==0 && !out.stdOut.isEmpty()){
+                                QStringList lines = out.stdOut.split('\n');
+                                if(lines.count()>=1){
+                                    QString line = lines[0];
+                                    int ix2 = line.indexOf(';');
+                                    if(ix2>0){
+                                        hwinfo_desc = line.mid(ix2+1);
+                                    }
                                 }
                             }
                         }
