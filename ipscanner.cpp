@@ -193,7 +193,7 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                 }
 
                 if(!projectName.isEmpty()){
-                    msg+= ", "+projectName;
+                    msg+= " "+projectName;
                 }
                 if(!hwinfo_desc.isEmpty()){
                     msg+= " ["+hwinfo_desc+']';
