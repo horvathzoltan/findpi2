@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 12.0.2, 2024-04-04T16:44:41. -->
+<!-- Written by QtCreator 12.0.2, 2024-04-05T13:42:30. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -100,8 +100,8 @@
    <value type="qlonglong" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
     <value type="int" key="EnableQmlDebugging">0</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/zoli/source/repos/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">/home/zoli/source/repos/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/zoli/source/build/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">/home/zoli/source/build/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -247,12 +247,13 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/zoli/source/repos/findpi2/findpi2.pro</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/zoli/source/repos/findpi2/findpi2.pro</value>
     <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
-    <value type="QString" key="RunConfiguration.Arguments">-m &quot;b8:27:eb:e3:cc:41=pi_1027 b8:27:eb:96:ca:bf=pi_1010 b8:27:eb:f4:81:bc=pi_1015 b8:27:eb:64:fd:cf=pi_1023 dc:a6:32:74:c8:db=sdcloner f0:2f:74:f7:bb:76=i7_11&quot; -s Aladar123</value>
+    <value type="QString" key="RunConfiguration.Arguments">-m &quot;b8:27:eb:e3:cc:41=pi_1027 b8:27:eb:96:ca:bf=pi_1010 b8:27:eb:f4:81:bc=pi_1015 b8:27:eb:64:fd:cf=pi_1023 dc:a6:32:74:c8:db=sdcloner f0:2f:74:f7:bb:76=i7_11&quot;
+ -s Aladar123</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseTerminal">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/zoli/source/repos/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/zoli/source/build/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug</value>
    </valuemap>
    <value type="qlonglong" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
