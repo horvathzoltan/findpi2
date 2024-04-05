@@ -77,6 +77,7 @@ Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, qui
     if ( sd < 0 )
     {
         if(_verbose) qDebug()<<"socket";
+        r.packSize = 0;
         return r;
     }
     if ( setsockopt(sd, SOL_IP, IP_TTL, &val, sizeof(val)) != 0)
@@ -110,10 +111,12 @@ Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, qui
     strncpy(packet+_dataOffset,d8,_data.length());
 
     //select  timeout
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    _timeoutMillis = timeoutMillis;
-    timeout.tv_usec = _timeoutMillis*1000;
+     _timeoutMillis = timeoutMillis;
+    // struct timeval timeout;
+    // timeout.tv_sec = 0;
+    // timeout.tv_usec = _timeoutMillis*1000;
+
+     auto tms = (_timeoutMillis*1000)/loopMax;
 
     fd_set recvfd;
     qint32 maxfd = sd + 1;
@@ -121,6 +124,10 @@ Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, qui
     //bool pingOk=false;
     for (quint32 loop=0; loop < loopMax; loop++)
     {
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = tms*(loop+1);
+
         pckt->icmp_cksum = 0;
         //qDebug()<<"cnt"<<_cnt;
         pckt->icmp_seq = _cnt++;        
@@ -143,13 +150,13 @@ Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, qui
         if(n < 0)
         {
             if(_verbose) qDebug()<<"Receive_Packet: select error...\n";
-           // continue;
+            continue;
         }
         //if timeout, then needn't receive packet again, so set m_nCnt to m_nSend and break
         else if(n == 0)
         {
             if(_verbose) qDebug() << "Request Timeout...";
-          //  continue;
+            continue;
         }
 
         ssize_t packSize = recvfrom(sd, &rpacket, PACKETSIZE, 0,

@@ -30,13 +30,13 @@ void Work1::Params::GetHostAddress(){
     }
 }
 
-auto Work1::Params::IsValid() -> bool
-{
-    QStringList err;
+// auto Work1::Params::IsValid() -> bool
+// {
+//     QStringList err;
 
-    if(!err.isEmpty()) zInfo(err)
-    return err.isEmpty();
-}
+//     if(!err.isEmpty()) zInfo(err)
+//     return err.isEmpty();
+// }
 
 Work1::Params Work1::Params::Parse(const QCommandLineParser &parser){
     Params m;
@@ -62,7 +62,7 @@ auto Work1::doWork(Params params) -> Result
 
     IpScanner::setVerbose(false);
     QMap<QString, QSet<int>> result =
-            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 1997, 8080}, 300, 5, 100);
+            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 1997, 8080}, 200, 3, 200);
 
 //    QList<QString> keys = result.keys();
 //    for (auto&key : keys)

@@ -138,10 +138,10 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                 QString hwinfo_desc;
                 QString piModelName;
                 if(hasSSHPort){
-                    QString cmd1 = QStringLiteral("ssh-keygen -R '%1'").arg(ip_str);
-                    ProcessHelper::Output out1 = ProcessHelper::ShellExecute(cmd1, 5000);
-                    if(out1.exitCode==0){
-                        QString cmd0 = QStringLiteral("ssh pi@%1 cat /sys/firmware/devicetree/base/model").arg(ip_str);
+                    //QString cmd1 = QStringLiteral("ssh-keygen -R '%1'").arg(ip_str);
+                    //ProcessHelper::Output out1 = ProcessHelper::ShellExecute(cmd1, 5000);
+                    if(true){//out1.exitCode==0){
+                        QString cmd0 = QStringLiteral("ssh pi@%1 -o StrictHostKeyChecking=no cat /sys/firmware/devicetree/base/model").arg(ip_str);
                         ProcessHelper::Output out0 = ProcessHelper::ShellExecute(cmd0, 5000);
 
                         if(out0.exitCode==0 && !out0.stdOut.isEmpty())

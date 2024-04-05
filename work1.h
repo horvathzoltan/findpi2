@@ -17,7 +17,7 @@ public:
         QMap<QString,QString> macAddress;
         QString _pwd;
 
-        bool IsValid();
+        //bool IsValid();
 
         void GetHostAddress();
         static Params Parse(const QCommandLineParser& parser);
