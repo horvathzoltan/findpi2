@@ -1,4 +1,5 @@
 #include "sendicmp.h"
+#include <unistd.h>
 
 #include <errno.h>
 #include <resolv.h>

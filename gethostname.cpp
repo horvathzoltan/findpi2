@@ -2,6 +2,7 @@
 #include "textfilehelper.h"
 #include "downloader.h"
 #include "processhelper.h"
+#include "stringhelper.h"
 
 #include <stdio.h>
 #include <netdb.h>
@@ -76,7 +77,7 @@ QString GetHostName::getMac(const QString &addr)
     if(!out.stdOut.isEmpty()){
         QStringList lines = out.stdOut.split('\n');
         for(auto&line:lines){
-            QStringList tokens = line.split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
+            QStringList tokens = line.split(' ', StringHelper::SplitBehavior);
             if(tokens[0]==addr){
                 return tokens[3];
             }
@@ -123,9 +124,9 @@ QList<GetHostName::OuiModel> GetHostName::Download(const QString& url)
 
     for(auto&line:lines)
     {
-        QStringList tokens1 = line.split('\t', Qt::SplitBehaviorFlags::SkipEmptyParts);
+        QStringList tokens1 = line.split('\t', StringHelper::SplitBehavior);
         if(tokens1.length()<2) continue;
-        QStringList tokens2 = tokens1[0].split(' ', Qt::SplitBehaviorFlags::SkipEmptyParts);
+        QStringList tokens2 = tokens1[0].split(' ', StringHelper::SplitBehavior);
         if(tokens2.length()<2) continue;
         if(tokens2[0].isEmpty()) continue;
         if(tokens1[1].isEmpty()) continue;
