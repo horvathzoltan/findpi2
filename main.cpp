@@ -24,7 +24,7 @@ auto main(int argc, char *argv[]) -> int
     SignalHelper::setShutDownSignal(SignalHelper::SIGINT_); // shut down on ctrl-c
     SignalHelper::setShutDownSignal(SignalHelper::SIGTERM_); // shut down on killall
 
-    zInfo(QStringLiteral("started"));
+    zInfo(QStringLiteral("started"))
 
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("test1"));
