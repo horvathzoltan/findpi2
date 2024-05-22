@@ -5,6 +5,15 @@
 #include "commandlineparserhelper.h"
 #include "work1.h"
 
+
+/*
+#!/bin/bash
+
+./findpi_ -m "b8:27:eb:e3:cc:41=pi_1027 b8:27:eb:96:ca:bf=pi_1010 b8:27:eb:f4:81:bc=pi_1015 b8:27:eb:64:fd:cf=pi_1023 dc:a6:32:74:c8:db=sdcloner f0:2f:74:f7:bb:76=i7_11" -s Aladar123
+
+*/
+
+
 // Projects/Run/CommanLineArguments
 // -m "b8:27:eb:e3:cc:41=pi1 b8:27:eb:e3:cc:42=pi2"
 

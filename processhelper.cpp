@@ -282,11 +282,11 @@ ProcessHelper::Output ProcessHelper::ShellExecute(const QString &cmd, int timeou
         process.setReadChannel(QProcess::StandardError);
         while (!process.atEnd()) {
             QString d = process.readAll();
-            std::cerr << d.toStdString();
+            //std::cerr << d.toStdString();
             //o2.append(d.toStdString());
             //o2.append(d.toStdString());
         }
-        std::cerr << QStringLiteral("\n").toStdString();
+        //std::cerr << QStringLiteral("\n").toStdString();
         //zInfo("opp");
     };
 

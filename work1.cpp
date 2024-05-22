@@ -62,7 +62,7 @@ auto Work1::doWork(Params params) -> Result
 
     IpScanner::setVerbose(false);
     QMap<QString, QSet<int>> result =
-            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 1997, 8080}, 200, 3, 200);
+            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 135, 445, 1997, 8080}, 200, 3, 200);
 
 //    QList<QString> keys = result.keys();
 //    for (auto&key : keys)
