@@ -103,6 +103,7 @@ SOURCES += \
         processhelper.cpp \
         sendicmp.cpp \
         signalhelper.cpp \
+        stringhelper.cpp \
         textfilehelper.cpp \
         work1.cpp
 
@@ -118,6 +119,7 @@ HEADERS += \
     processhelper.h \
     sendicmp.h \
     signalhelper.h \
+    stringhelper.h \
     textfilehelper.h \
     work1.h
 

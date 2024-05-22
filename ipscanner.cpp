@@ -22,7 +22,7 @@ void IpScanner::log(const QString &msg)
     out<<msg;
     out.flush();
 }
-
+// aaa
 QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                                          QHostAddress ip, int i1, int i2, QSet<int> ports,
                                          int ptimeout, int pn, int timeout)
