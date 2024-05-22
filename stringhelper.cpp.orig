@@ -1,0 +1,12 @@
+#include "stringhelper.h"
+
+<<<<<<< HEAD
+StringHelper::StringHelper() {}
+=======
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
+    const Qt::SplitBehavior StringHelper::SplitBehavior = Qt::SplitBehaviorFlags::SkipEmptyParts,
+#elif QT_VERSION > QT_VERSION_CHECK(5, 0, 0)
+    const QString::SplitBehavior StringHelper::SplitBehavior = QString::SplitBehavior::SkipEmptyParts;
+#endif
+
+>>>>>>> 26e4cf03698cf2e54b3398568505b906381a255d

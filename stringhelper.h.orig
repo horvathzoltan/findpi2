@@ -1,16 +1,23 @@
 #ifndef STRINGHELPER_H
 #define STRINGHELPER_H
 
+<<<<<<< HEAD
+class StringHelper
+{
+public:
+    StringHelper();
+=======
 #include <QString>
 
 class StringHelper
 {
 public:
-#if QT_VERSION > QT_VERSION_CHECK(5, 15, 0)
+#if QT_VERSION > QT_VERSION_CHECK(6, 0, 0)
     static const Qt::SplitBehavior SplitBehavior;
-#else
+#elif QT_VERSION > QT_VERSION_CHECK(5, 0, 0)
     static const QString::SplitBehavior SplitBehavior;
 #endif
+>>>>>>> 26e4cf03698cf2e54b3398568505b906381a255d
 };
 
 #endif // STRINGHELPER_H
