@@ -130,16 +130,17 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                     msg+=" "+vendor;
             }
 
-            QMap<QString, QString>::const_iterator kv = macAddress.constFind(mac_str);
-            if(kv!=macAddress.constEnd())
-                msg+=" <- "+kv.value();
+
 
 // ssh-keygen -R '172.16.1.232'
 // ssh pi@172.16.1.232 -o StrictHostKeyChecking=no cat /sys/firmware/devicetree/base/model
 
-            if(hostname_str.endsWith("(localhost)")){
+            if(hostname_str.endsWith("(localhost)"))
+            {
                 msg = "\033[1;33m"+msg+"\e[0m";
-            } else if(isRasPi){
+            }
+            else if(isRasPi)
+            {
                 QString projectName;
                 QString hwinfo_desc;
                 QString piModelName;
@@ -251,6 +252,11 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                 // Raspberry Pi az ciánkék
                 msg = "\033[0;36m"+msg+"\e[0m";
             }
+
+            QMap<QString, QString>::const_iterator kv = macAddress.constFind(mac_str);
+            if(kv!=macAddress.constEnd())
+                msg+=" <- "+kv.value();
+
             log(msg+'\n');
         }
     }
