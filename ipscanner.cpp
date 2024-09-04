@@ -116,18 +116,18 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
             QString vl =  vendor.toLower();
             bool isRasPi = vl.startsWith("ras")&&vl.contains("pi");
 
-            QString msg = mac_str;
+            QString msg0 = mac_str;
 
-            msg += " ("+ ip_str;
+            msg0 += " ("+ ip_str;
             if(!ports_txt.isEmpty())
-                msg += ":"+ports_txt;
+                msg0 += ":"+ports_txt;
             if(!hostname_str.isEmpty())
-                msg+=" "+hostname_str;
-            msg+=")";
+                msg0+=" "+hostname_str;
+            msg0+=")";
 
             if(!isRasPi){                
                 if(!vendor.isEmpty())
-                    msg+=" "+vendor;
+                    msg0+=' '+vendor;
             }
 
 
@@ -140,10 +140,14 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
             // }
             if(hostname_str.endsWith("(localhost)"))
             {
-                msg = "\033[1;33m"+msg+"\e[0m";
+                msg0 = "\033[1;33m"+msg0+"\e[0m";
             }
             else if(isRasPi)
             {
+                int lenmeg1 = mac_str.length()+1;
+                QString msg1;
+                QString msg2;
+
                 QString projectName;
                 QString hwinfo_desc;
                 QString piModelName;
@@ -230,37 +234,38 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                     }
                 }
                 if(!piModelName.isEmpty()){
-                    msg += " "+piModelName;
+                    msg0 += " "+piModelName;
                 } else{
                     if(!vendor.isEmpty())
-                        msg+=" "+vendor;
+                        msg0+=" "+vendor;
                     // if(!hostname_str.isEmpty())
                     //     msg+=","+hostname_str;
                 }
 
                 if(!osName.isEmpty()){
-                    msg+= "("+osName+")";
+                    msg1+= osName;
                 }
 
                 if(!projectName.isEmpty()){
-                    msg+= " "+projectName;
+                    msg2+= projectName;
                 }
                 if(!hwinfo_desc.isEmpty()){
-                    msg+= " ["+hwinfo_desc+']';
+                    msg2+= " ["+hwinfo_desc+']';
                 }
 
 
-
+                if(!msg1.isEmpty()) msg0 += '\n'+QString(lenmeg1, ' ')+msg1;
+                if(!msg2.isEmpty()) msg0 += '\n'+QString(lenmeg1, ' ')+msg2;
 
                 // Raspberry Pi az ciánkék
-                msg = "\033[0;36m"+msg+"\e[0m";
+                msg0 = "\033[0;36m"+msg0+"\e[0m";
             }
 
             QMap<QString, QString>::const_iterator kv = macAddress.constFind(mac_str);
             if(kv!=macAddress.constEnd())
-                msg+=" <- "+kv.value();
+                msg0+=" <- "+kv.value();
 
-            log(msg+'\n');
+            log(msg0+'\n');
         }
     }
     return ipList;
