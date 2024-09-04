@@ -1,4 +1,5 @@
 #include "processhelper.h"
+#include "logger.h"
 #include "qdebug.h"
 //#include "helpers/logger.h"
 
@@ -306,6 +307,13 @@ ProcessHelper::Output ProcessHelper::ShellExecute(const QString &cmd, int timeou
     o.stdOut  = process.readAllStandardOutput();
     o.stdErr = process.readAllStandardError();
     o.exitCode = process.exitCode();
+
+    // zInfo("cmd:"+process.program());
+    // zInfo("arguments:"+process.arguments().join(';'));
+    // zInfo("elapsedMillis:"+QString::number(o.elapsedMillis));
+    // zInfo("stdOut:"+o.stdOut);
+    // zInfo("stdErr:"+o.stdErr);
+    // zInfo("exitCode:"+QString::number(o.exitCode));
 
     return o;
 }

@@ -18,6 +18,9 @@
 #include <QNetworkInterface>
 #include <QHostInfo>
 #include <qfileinfo.h>
+#include <QStringLiteral>
+
+#include "logger.h"
 
 Downloader* GetHostName::_downloader = nullptr;
 quint32 GetHostName::_downloader_status = 0;
@@ -90,8 +93,7 @@ QString GetHostName::getMac(const QString &addr)
 //QtDownload dl;
 QString GetHostName::GetVendor(const QString &mac){
     if(mac.isEmpty()) return {};
-    static QList<GetHostName::OuiModel> ouiModels =
-            Download("https://standards-oui.ieee.org/oui/oui.txt");
+    static QList<GetHostName::OuiModel> ouiModels = LoadData("oui.txt");
 
     QString mac2 = mac.toUpper();
     for(auto&o:ouiModels){
@@ -100,14 +102,14 @@ QString GetHostName::GetVendor(const QString &mac){
     return {};
 }
 
-QList<GetHostName::OuiModel> GetHostName::Download(const QString& url)
+bool GetHostName::Download(const QString& url, const QString& filename)
 {
     bool download;
-    QFileInfo fi("oui.txt");
+    QFileInfo fi(filename);
     if(fi.exists()){
         auto now = QDateTime::currentDateTime();
         qint64 t = fi.metadataChangeTime().secsTo(now);
-        download = t>24*60*60;
+        download = t > 24*60*60;
     } else {
         download = true;
     }
@@ -115,12 +117,36 @@ QList<GetHostName::OuiModel> GetHostName::Download(const QString& url)
     if(download)
     {
         bool ok = Downloader::Wget(url, fi.absoluteFilePath());
-        if(!ok) return {};
+
+        if(ok)
+        {
+            zInfo("downloaded:"+fi.absoluteFilePath());
+        }
+        else
+        {
+            zInfo("cannot download:"+fi.absoluteFilePath());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+QList<GetHostName::OuiModel> GetHostName::LoadData(const QString& filename)
+{
+    QFileInfo fi(filename);
+    if(!fi.exists()){
+        zInfo("not exists:"+fi.absoluteFilePath());
+        return {};
+    } else{
+        zInfo("LoadData:"+fi.absoluteFilePath());
     }
 
     QList<GetHostName::OuiModel> m;
     FileErrors err;
     QStringList lines = TextFileHelper::LoadLinesContains(fi.absoluteFilePath(), {"hex"}, &err);
+
+    zInfo("lines:"+QString::number(lines.count()));
 
     for(auto&line:lines)
     {
@@ -133,6 +159,7 @@ QList<GetHostName::OuiModel> GetHostName::Download(const QString& url)
         OuiModel oui{ .oui=tokens2[0].replace('-', ':').toUpper(), .vendor=tokens1[1]};
         m<<oui;
     }
+
     return m;
 }
 

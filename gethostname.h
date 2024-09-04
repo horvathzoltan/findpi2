@@ -33,9 +33,12 @@ public:
     static QString get(const QString& addr);
     static QString getMac(const QString& addr);
     static QString GetVendor(const QString &mac);
-    static QList<GetHostName::OuiModel> Download(const QString &addr);
+    static bool Download(const QString &addr, const QString& filename);
+    static QList<GetHostName::OuiModel> LoadData(const QString& filename);
     static void readFile();
     static QList<LocalIpModel> GetAllLocalIp();
+//private:
+//static void zInfo(const char *);
 };
 
 #endif // GETHOSTNAME_H

@@ -3,6 +3,7 @@
 #include "nameof.h"
 #include "ipscanner.h"
 #include "processhelper.h"
+#include "gethostname.h"
 #include <QDebug>
 
 void Work1::Params::GetHostAddress(){
@@ -60,6 +61,7 @@ auto Work1::doWork(Params params) -> Result
 
     ProcessHelper::SetPassword(params._pwd);
 
+    GetHostName::Download("https://standards-oui.ieee.org/oui/oui.txt", "oui.txt");
     IpScanner::setVerbose(false);
     QMap<QString, QSet<int>> result =
             IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 135, 445, 1997, 8080}, 200, 3, 200);
