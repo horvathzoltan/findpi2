@@ -41,7 +41,8 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
     static const QString w("|/-\\");
 
     Ping ping;
-    ping.setVerbose(false);
+    ping.setVerbose(true);
+    Downloader::setVerbose(false);
 
     QList<int> opened_ports;
 
@@ -74,17 +75,18 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
         }
         else
         {
-            Ping::PingResult r = ping.ping(address, ptimeout, pn);
-            ip_str = r.fromIp;
+            //Ping::PingResult r = ping.ping(address, ptimeout, pn);
+            Ping::PingResult pingResult = ping.ping2(address, ptimeout, pn);
+            ip_str = pingResult.fromIp;
             QString addst = address.toString();
             mac_str = GetHostName::getMac(addst);
             hostname_str = GetHostName::get(address.toString());
 
             if(hostname_str.isEmpty())
-                hostname_str = Downloader::AvahiResolve(r.fromIp);
+                hostname_str = Downloader::AvahiResolve(ip_str);
 
-            time_str = QString::number(r.time);
-            ok = r.ok;
+            time_str = QString::number(pingResult.time);
+            ok = pingResult.ok;
         }
 
         if(ok)

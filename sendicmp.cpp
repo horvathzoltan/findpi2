@@ -1,4 +1,5 @@
 #include "sendicmp.h"
+#include "qcoreapplication.h"
 #include <unistd.h>
 
 #include <errno.h>
@@ -12,6 +13,8 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <QDebug>
+#include <QElapsedTimer>
+#include <QProcessEnvironment>
 
 // https://stackoverflow.com/questions/9913661/what-is-the-proper-process-for-icmp-echo-request-reply-on-unreachable-destinatio
 // https://github.com/rocwangp/ping/blob/master/ping.cpp
@@ -39,16 +42,58 @@ void Ping::setVerbose(bool v){
     _verbose = v;
 }
 
+Ping::PingResult Ping::ping2(const QHostAddress& host, quint32 timeoutMillis, quint32 loopMax)
+{
+    static QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+
+    QProcess process;
+    QString hostName = host.toString();
+
+    Ping::PingResult r;
+    r.ok = false;
+    r.fromIp = hostName;
+    r.packSize = 0;
+    r.icmpSeq = 0;
+    r.ttl = 0;
+
+    // process beállítása
+    // workaround - https://bugreports.qt.io/browse/QTBUG-2284
+    env.insert("LD_LIBRARY_PATH", "/usr/lib");
+    process.setProcessEnvironment(env);
+    QString path = qApp->applicationDirPath();
+    process.setWorkingDirectory(path);
+
+
+    QStringList l = {hostName,"-c1", "-w3"};
+    QString cmd("ping");
+    // process indítása
+    QElapsedTimer t;
+    t.start();
+    process.start(cmd, l);
+    if(!process.waitForStarted()) return r;
+    process.waitForFinished();//timeoutMillis);
+
+    r.time = t.elapsed();
+    //ProcessHelper::Output o;
+    //auto elapsedMillis = t.elapsed();
+    //auto stdOut  = process.readAllStandardOutput();
+    //auto stdErr = process.readAllStandardError();
+    auto exitCode = process.exitCode();
+
+    r.ok = exitCode==0;
+
+    return r;
+}
+
 /*--------------------------------------------------------------------*/
 /*--- ping - Create message and send it.                           ---*/
 /*    return 0 is ping Ok, return 1 is ping not OK.                ---*/
 /*--------------------------------------------------------------------*/
 Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, quint32 loopMax)
 {
-    //Init_PacketNoArray();
     _nPacketNoLimit=0;
     _cnt=0;
-    PingResult r;
+    PingResult result;
     const qint32 val=255;
     qint32 sd;
     struct icmp* pckt;
@@ -74,22 +119,22 @@ Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, qui
 //    addr_ping.sin_port = 0;
 //    addr_ping.sin_addr.s_addr = htonl(host.toIPv4Address());
 
-    sd = socket(PF_INET, SOCK_DGRAM, _proto->p_proto);
+    sd = socket(PF_INET, SOCK_DGRAM, _proto->p_proto);//SOCK_DGRAM
     if ( sd < 0 )
     {
-        if(_verbose) qDebug()<<"socket";
-        r.packSize = 0;
-        return r;
+        if(_verbose) qDebug()<<"socket errno:"+ QString::number(errno);
+        result.packSize = 0;
+        return result;
     }
     if ( setsockopt(sd, SOL_IP, IP_TTL, &val, sizeof(val)) != 0)
     {
         if(_verbose) qDebug()<<"Set TTL option";
-        return r;
+        return result;
     }
     if ( fcntl(sd, F_SETFL, O_NONBLOCK) != 0 )
     {
         if(_verbose) qDebug()<<"Request nonblocking I/O";
-        return r;
+        return result;
     }
 
     quint64 r_addr_len = sizeof(r_addr);
@@ -169,14 +214,14 @@ Ping::PingResult Ping::ping(const QHostAddress& host, quint32 timeoutMillis, qui
             continue;
         }
 
-        r = unpack(rpacket, packSize);
-        if (r.ok)
+        result = unpack(rpacket, packSize);
+        if (result.ok)
         {
             break;
         }        
     }
 
-    return r;
+    return result;
 }
 
 Ping::PingResult Ping::unpack(char* packet, quint32 packSize)

@@ -33,7 +33,7 @@ public:
         QString fromIp;
         quint16 icmpSeq;
         quint8 ttl;
-        qreal time;
+        qreal time = 0;
         bool ok = false;
 
         QString ToString();
@@ -43,6 +43,8 @@ public:
     PingResult unpack(char* pckt, quint32);
     void tv_sub(timeval *in, timeval *out);
     void setVerbose(bool);
+
+    PingResult ping2(const QHostAddress& host, quint32 timeoutMillis, quint32 loopMax);
 };
 
 #endif // SENDICMP_H

@@ -64,7 +64,7 @@ auto Work1::doWork(Params params) -> Result
     GetHostName::Download("https://standards-oui.ieee.org/oui/oui.txt", "oui.txt");
     IpScanner::setVerbose(false);
     QMap<QString, QSet<int>> result =
-            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 135, 445, 1997, 8080}, 200, 3, 200);
+            IpScanner::Scan(params.macAddress, params.ipAddress, 1, 254, {22, 135, 445, 1997, 8080}, 1000, 3, 1000);
 
 //    QList<QString> keys = result.keys();
 //    for (auto&key : keys)

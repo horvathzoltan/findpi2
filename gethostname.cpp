@@ -80,10 +80,11 @@ QString GetHostName::getMac(const QString &addr)
     if(!out.stdOut.isEmpty()){
         QStringList lines = out.stdOut.split('\n');
         for(auto&line:lines){
+            //if(line.isEmpty()) continue;
             QStringList tokens = line.split(' ', StringHelper::SplitBehavior);
-            if(tokens[0]==addr){
-                return tokens[3];
-            }
+            bool hasTokens = tokens.length()>3;
+            if(!hasTokens) continue;
+            if( tokens[0]==addr) return tokens[3];
         }
     }
     return {};

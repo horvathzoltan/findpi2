@@ -16,7 +16,8 @@
 
 // Projects/Run/CommanLineArguments
 // -m "b8:27:eb:e3:cc:41=pi1 b8:27:eb:e3:cc:42=pi2"
-
+//
+// setcap cap_net_raw,cap_net_admin=eip /home/zoli/source/build/build-findpi2-Desktop_Qt_5_15_2_GCC_64bit-Debug/findpi2
 auto main(int argc, char *argv[]) -> int
 {
     Logger::Init(Logger::ErrLevel::INFO, Logger::DbgLevel::TRACE, true, true);
