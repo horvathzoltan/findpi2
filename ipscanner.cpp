@@ -9,19 +9,23 @@
 #include "processhelper.h"
 
 bool IpScanner::_verbose;
+int IpScanner::_lastmsgId = 0;
 
 void IpScanner::setVerbose(bool v)
 {
     _verbose = v;
 }
 
-void IpScanner::log(const QString &msg)
+int IpScanner::log(const QString &msg)
 {
     static QTextStream out(stdout);
 
     out<<msg;
     out.flush();
+
+    return ++_lastmsgId;
 }
+
 // aaa
 QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                                          QHostAddress ip, int i1, int i2, QSet<int> ports,
@@ -34,10 +38,10 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
 
     QTcpSocket socket;
     QMap<QString, QSet<int>> ipList;
-    QHostAddress address;
+    QHostAddress hostAddress;
 
-    qint32 i = ip.toIPv4Address();
-    unsigned char* ip2 = reinterpret_cast<unsigned char*>(&i);//mutató az i LSB-re
+    qint32 ipAddress = ip.toIPv4Address();
+    unsigned char* ip2 = reinterpret_cast<unsigned char*>(&ipAddress);//mutató az i LSB-re
     static const QString w("|/-\\");
 
     Ping ping;
@@ -49,13 +53,15 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
     auto localIps = GetHostName::GetAllLocalIp();
     for(unsigned char u=i1;u<i2;u++){
         *ip2=u;
-        address.setAddress(i);
+        hostAddress.setAddress(ipAddress);
+        QString msg0a = hostAddress.toString();
+        int msg0aId = log(msg0a);
 
         bool ok;
 
         GetHostName::LocalIpModel* lip2=nullptr;
         for(GetHostName::LocalIpModel &lip : localIps) {
-            if (lip.ip == address.toString()) {
+            if (lip.ip == hostAddress.toString()) {
                 lip2 = &lip;
                 break;
             }
@@ -76,11 +82,11 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
         else
         {
             //Ping::PingResult r = ping.ping(address, ptimeout, pn);
-            Ping::PingResult pingResult = ping.ping2(address, ptimeout, pn);
+            Ping::PingResult pingResult = ping.ping2(hostAddress, ptimeout, pn);
             ip_str = pingResult.fromIp;
-            QString addst = address.toString();
+            QString addst = hostAddress.toString();
             mac_str = GetHostName::getMac(addst);
-            hostname_str = GetHostName::get(address.toString());
+            hostname_str = GetHostName::get(hostAddress.toString());
 
             if(hostname_str.isEmpty())
                 hostname_str = Downloader::AvahiResolve(ip_str);
@@ -88,6 +94,8 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
             time_str = QString::number(pingResult.time);
             ok = pingResult.ok;
         }
+
+
 
         if(ok)
         {                       
@@ -97,12 +105,12 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
 
             bool hasSSHPort = false;
             for (const int &port : ports) {
-                socket.connectToHost(address, port, QIODevice::ReadWrite);
+                socket.connectToHost(hostAddress, port, QIODevice::ReadWrite);
                 bool ok = socket.waitForConnected(timeout);
 
                 if (ok) {
                     socket.disconnectFromHost();
-                    auto a = address.toString();
+                    auto a = hostAddress.toString();
                     ipList[a].insert(port);
                     if (!ports_txt.isEmpty())
                         ports_txt += ',';
@@ -202,6 +210,7 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
                             QString projectFolder;
                             if(out1.exitCode==0 && !out1.stdOut.isEmpty())
                             {
+                                log("/r");
                                 QStringList lines = out1.stdOut.split('\n');
                                 if(lines.count()>=1){
                                     QString line = lines[0];
@@ -267,7 +276,19 @@ QMap<QString, QSet<int>> IpScanner::Scan(QMap<QString,QString> macAddress,
             if(kv!=macAddress.constEnd())
                 msg0+=" <- "+kv.value();
 
+
+            if(msg0aId == _lastmsgId)
+            {
+                log("\r");
+            }
             log(msg0+'\n');
+        }
+        else // if(ok)
+        {
+            if(msg0aId == _lastmsgId)
+            {
+                log("\r");
+            }
         }
     }
     return ipList;
